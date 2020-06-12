@@ -1,5 +1,6 @@
 import STcpClient
 import random
+import numpy as np
 
 '''
     輪到此程式移動棋子
@@ -12,13 +13,84 @@ import random
             r, c 表示要下棋子的座標位置 (row, column) (zero-base)
 '''
 
+""" These functions will be moved to func.py later """
+def eval_func(state):
+    # 粘捷負責
+    pass
+
+def getwalkables(state):
+    indices = np.argwhere(state==0)
+    return [tuple(row) for row in indices]
+
+def testidx(idx, state, is_black):
+    #彥淳負責
+    pass
+
+def isterminal(state):
+    pass
+
+def minmax(state, depth, maxplayer, is_black, alpha, beta):
+
+    next_states = []
+    next_placement = []
+    walkables = getwalkables(state)
+    for w in walkables:
+        flipnum, is_legal, s = testidx(w, state, is_black)
+        if is_legal:
+            next_states.append(s)
+            next_placement.append(w)
+    
+    if depth==0 or isterminal(state):
+        return eval_func(state)
+
+    i = -1 #the index of the instance of lists
+    if maxplayer:
+        v = -np.inf
+        for s in next_states:
+            i +=1
+            v = max(v, minmax(s, depth-1, False, is_black, alpha, beta))
+            if v>=beta:
+                if depth == DEPTH:
+                    return next_placement[i]
+                else:
+                    return v
+            alpha = max(alpha, v)
+
+        if depth == DEPTH:
+            return next_placement[i]
+        else:
+            return v
+    else:
+        v = np.inf
+        for s in next_states:
+            i+=1
+            v = min(v, minmax(s, depth-1, True, is_black, alpha, beta))
+            if v<=alpha:
+                if depth == DEPTH:
+                    return next_placement[i]
+                else:
+                    return v
+            beta = min(beta, v)
+
+        if depth == DEPTH:
+            return next_placement[i]
+        else:
+            return v
+
+
+DEPTH = 4
+
 def GetStep(board, is_black):
-    """
-    Example:
-    x = random.randint(0, 7)
-    y = random.randint(0, 7)
-    return (x,y)
-    """
+
+    # make the board a ndarray
+    board = np.array(board, dtype='int32')
+
+    # do the minmax process
+    depth = DEPTH
+    alpha = -np.inf
+    beta = np.inf
+    return minmax(board, depth, True, is_black, alpha, beta)
+
 
 while(True):
     (stop_program, id_package, board, is_black) = STcpClient.GetBoard()
