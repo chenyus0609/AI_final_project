@@ -13,7 +13,7 @@ import numpy as np
             r, c 表示要下棋子的座標位置 (row, column) (zero-base)
 '''
 
-""" These functions will be moved to func.py later """
+
 def eval_func(state):
     # 粘捷負責
     pass
@@ -26,13 +26,10 @@ def testidx(idx, state, is_black):
     #彥淳負責
     pass
 
-def isterminal(state):
-    pass
-
 def minmax(state, depth, maxplayer, is_black, alpha, beta):
-
     next_states = []
     next_placement = []
+
     walkables = getwalkables(state)
     for w in walkables:
         flipnum, is_legal, s = testidx(w, state, is_black)
@@ -40,8 +37,12 @@ def minmax(state, depth, maxplayer, is_black, alpha, beta):
             next_states.append(s)
             next_placement.append(w)
     
-    if depth==0 or isterminal(state):
-        return eval_func(state)
+    if depth==0 or len(next_states)==0:
+        # depth-cut or no legal move
+        if depth == DEPTH:
+            return (0,0) # input state has no legal move --> return illegal move
+        else:
+            return eval_func(state)
 
     i = -1 #the index of the instance of lists
     if maxplayer:
