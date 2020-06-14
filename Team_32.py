@@ -16,7 +16,9 @@ import numpy as np
 
 def eval_func(state):
     # 粘捷負責
-    pass
+    simple_diff = (state==SAME_COLOR).sum()-(state==OPPOSE_COLOR).sum() # a baseline
+    eval_val = simple_diff
+    return eval_val
 
 def getwalkables(state):
     indices = np.argwhere(state==0)
@@ -26,8 +28,6 @@ def testidx(idx, state, is_black):
     #彥淳負責
     x = idx[0]
     y = idx[1]
-    same_color = 1 if is_black else 2
-    blank = 0
     next_state = np.copy(state)
     flip_num = 0
 
@@ -35,91 +35,91 @@ def testidx(idx, state, is_black):
 
     # x to negative 
     for k in range(x-1, -1, -1): 
-        if state[(k,y)] == same_color:
+        if state[(k,y)] == SAME_COLOR:
             for j in range(k+1,x):
-                next_state[(j,y)] = same_color
+                next_state[(j,y)] = SAME_COLOR
                 flip_num +=1
             break
-        elif state[(k,y)] == blank:
+        elif state[(k,y)] == BLANK:
             break
 
     # x to positive
     for k in range(x+1, 8): 
-        if state[(k,y)] == same_color:
+        if state[(k,y)] == SAME_COLOR:
             for j in range(k-1, x, -1):
-                next_state[(j,y)] = same_color
+                next_state[(j,y)] = SAME_COLOR
                 flip_num +=1
             break
-        elif state[(k,y)] == blank:
+        elif state[(k,y)] == BLANK:
             break
 
     # y to negative 
     for k in range(y-1, -1, -1): 
-        if state[(x,k)] == same_color:
+        if state[(x,k)] == SAME_COLOR:
             for j in range(k+1,y):
-                next_state[(x,j)] = same_color
+                next_state[(x,j)] = SAME_COLOR
                 flip_num +=1
             break
-        elif state[(x,k)] == blank:
+        elif state[(x,k)] == BLANK:
             break
 
     # y to positive
     for k in range(y+1, 8): 
-        if state[(x,k)] == same_color:
+        if state[(x,k)] == SAME_COLOR:
             for j in range(k-1, y, -1):
-                next_state[(x,j)] = same_color
+                next_state[(x,j)] = SAME_COLOR
                 flip_num +=1
             break
-        elif state[(x,k)] == blank:
+        elif state[(x,k)] == BLANK:
             break
 
     # x=y line to negative
     for k in zip(range(x-1,-1,-1),range(y-1,-1,-1)):
-        if state[k] == same_color:
+        if state[k] == SAME_COLOR:
             for j in zip(range(k[0]+1, x), range(k[1]+1, y)):
-                next_state[j] = same_color
+                next_state[j] = SAME_COLOR
                 flip_num +=1
             break
-        elif state[k] == blank:
+        elif state[k] == BLANK:
             break
     
     # x=y line to positive
     for k in zip(range(x+1,8),range(y+1,8)):
-        if state[k] == same_color:
+        if state[k] == SAME_COLOR:
             for j in zip(range(k[0]-1, x, -1), range(k[1]-1, y, -1)):
-                next_state[j] = same_color
+                next_state[j] = SAME_COLOR
                 flip_num +=1
             break
-        elif state[k] == blank:
+        elif state[k] == BLANK:
             break
     
     # x+y=p line to negative
     for k in zip(range(x-1,-1,-1),range(y+1,8)):
-        if state[k] == same_color:
+        if state[k] == SAME_COLOR:
             for j in zip(range(k[0]+1, x), range(k[1]-1, y, -1)):
-                next_state[j] = same_color
+                next_state[j] = SAME_COLOR
                 flip_num +=1
             break
-        elif state[k] == blank:
+        elif state[k] == BLANK:
             break
     
     # x+y=p line to positive
     for k in zip(range(x+1,8),range(y-1,-1,-1)):
-        if state[k] == same_color:
+        if state[k] == SAME_COLOR:
             for j in zip(range(k[0]-1, x, -1), range(k[1]+1, y)):
-                next_state[j] = same_color
+                next_state[j] = SAME_COLOR
                 flip_num +=1
             break
-        elif state[k] == blank:
+        elif state[k] == BLANK:
             break
     
     if flip_num != 0:
-        next_state[idx] = same_color
+        next_state[idx] = SAME_COLOR
         return flip_num, True, next_state
     
     # check if it is in 6*6
     if 1<=x<=6 and 1<=y<=6:
-        next_state[idx] = same_color
+        next_state[idx] = SAME_COLOR
         return flip_num, True, next_state
     else:
         return flip_num, False, next_state
@@ -180,6 +180,9 @@ def minmax(state, depth, maxplayer, is_black, alpha, beta):
 
 
 DEPTH = 4
+SAME_COLOR = 1 # will be changed ever case
+OPPOSE_COLOR = 2 # will be changed ever case
+BLANK = 0
 
 def GetStep(board, is_black):
 
@@ -187,6 +190,8 @@ def GetStep(board, is_black):
     board = np.array(board, dtype='int32')
 
     # do the minmax process
+    SAME_COLOR = 1 if is_black else 2
+    OPPOSE_COLOR = 2 if is_black else 1
     depth = DEPTH
     alpha = -np.inf
     beta = np.inf
