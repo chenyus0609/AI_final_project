@@ -24,7 +24,107 @@ def getwalkables(state):
 
 def testidx(idx, state, is_black):
     #彥淳負責
-    pass
+    x = idx[0]
+    y = idx[1]
+    same_color = 1 if is_black else 2
+    blank = 0
+    next_state = np.copy(state)
+    flip_num = 0
+
+    # check if it flips 
+
+    # x to negative 
+    for k in range(x-1, -1, -1): 
+        if state[(k,y)] == same_color:
+            for j in range(k+1,x):
+                next_state[(j,y)] = same_color
+                flip_num +=1
+            break
+        elif state[(k,y)] == blank:
+            break
+
+    # x to positive
+    for k in range(x+1, 8): 
+        if state[(k,y)] == same_color:
+            for j in range(k-1, x, -1):
+                next_state[(j,y)] = same_color
+                flip_num +=1
+            break
+        elif state[(k,y)] == blank:
+            break
+
+    # y to negative 
+    for k in range(y-1, -1, -1): 
+        if state[(x,k)] == same_color:
+            for j in range(k+1,y):
+                next_state[(x,j)] = same_color
+                flip_num +=1
+            break
+        elif state[(x,k)] == blank:
+            break
+
+    # y to positive
+    for k in range(y+1, 8): 
+        if state[(x,k)] == same_color:
+            for j in range(k-1, y, -1):
+                next_state[(x,j)] = same_color
+                flip_num +=1
+            break
+        elif state[(x,k)] == blank:
+            break
+
+    # x=y line to negative
+    for k in zip(range(x-1,-1,-1),range(y-1,-1,-1)):
+        if state[k] == same_color:
+            for j in zip(range(k[0]+1, x), range(k[1]+1, y)):
+                next_state[j] = same_color
+                flip_num +=1
+            break
+        elif state[k] == blank:
+            break
+    
+    # x=y line to positive
+    for k in zip(range(x+1,8),range(y+1,8)):
+        if state[k] == same_color:
+            for j in zip(range(k[0]-1, x, -1), range(k[1]-1, y, -1)):
+                next_state[j] = same_color
+                flip_num +=1
+            break
+        elif state[k] == blank:
+            break
+    
+    # x+y=p line to negative
+    for k in zip(range(x-1,-1,-1),range(y+1,8)):
+        if state[k] == same_color:
+            for j in zip(range(k[0]+1, x), range(k[1]-1, y, -1)):
+                next_state[j] = same_color
+                flip_num +=1
+            break
+        elif state[k] == blank:
+            break
+    
+    # x+y=p line to positive
+    for k in zip(range(x+1,8),range(y-1,-1,-1)):
+        if state[k] == same_color:
+            for j in zip(range(k[0]-1, x, -1), range(k[1]+1, y)):
+                next_state[j] = same_color
+                flip_num +=1
+            break
+        elif state[k] == blank:
+            break
+    
+    if flip_num != 0:
+        next_state[idx] = same_color
+        return flip_num, True, next_state
+    
+    # check if it is in 6*6
+    if 1<=x<=6 and 1<=y<=6:
+        next_state[idx] = same_color
+        return flip_num, True, next_state
+    else:
+        return flip_num, False, next_state
+    
+    
 
 def minmax(state, depth, maxplayer, is_black, alpha, beta):
     next_states = []
@@ -32,7 +132,7 @@ def minmax(state, depth, maxplayer, is_black, alpha, beta):
 
     walkables = getwalkables(state)
     for w in walkables:
-        flipnum, is_legal, s = testidx(w, state, is_black)
+        flip_num, is_legal, s = testidx(w, state, is_black)
         if is_legal:
             next_states.append(s)
             next_placement.append(w)
