@@ -106,7 +106,7 @@ def fliping(x,y, state, next_state, flip_num, THIS_COLOR):
             break
 
 def can_flip(idx, state, OPPOSE_COLOR):
-    oppose_idxs = np.argwhere(state==0)
+    oppose_idxs = np.argwhere(state==OPPOSE_COLOR)
     for oppose_id in [tuple(row) for row in oppose_idxs]:
         slope = (oppose_id[1]-idx[1])/(oppose_id[0]-idx[0])
         if slope in [0, 1, -1, np.inf, -np.inf]:
