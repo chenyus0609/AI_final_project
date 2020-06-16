@@ -197,8 +197,7 @@ def GetStep(board, is_black):
     beta = np.inf
     MY_COLOR = 1 if is_black else 2
     ENEMY_COLOR = 2 if is_black else 1
-    #print("A2")
-    #return (0,0)
+
     return minmax(board, depth, True, is_black, alpha, beta)
 
 
