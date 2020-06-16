@@ -16,7 +16,7 @@ import numpy as np
 
 def eval_func(state):
     # 粘捷負責
-    simple_diff = (state==SAME_COLOR).sum()-(state==OPPOSE_COLOR).sum() # a baseline
+    simple_diff = (state==MY_COLOR).sum()-(state==ENEMY_COLOR).sum() # a baseline
     eval_val = simple_diff
     return eval_val
 
@@ -24,7 +24,7 @@ def getwalkables(state):
     indices = np.argwhere(state==0)
     return [tuple(row) for row in indices]
 
-def testidx(idx, state, is_black):
+def testidx(idx, state, THIS_COLOR):
     #彥淳負責
     x = idx[0]
     y = idx[1]
@@ -35,9 +35,9 @@ def testidx(idx, state, is_black):
 
     # x to negative 
     for k in range(x-1, -1, -1): 
-        if state[(k,y)] == SAME_COLOR:
+        if state[(k,y)] == THIS_COLOR:
             for j in range(k+1,x):
-                next_state[(j,y)] = SAME_COLOR
+                next_state[(j,y)] = THIS_COLOR
                 flip_num +=1
             break
         elif state[(k,y)] == BLANK:
@@ -45,9 +45,9 @@ def testidx(idx, state, is_black):
 
     # x to positive
     for k in range(x+1, 8): 
-        if state[(k,y)] == SAME_COLOR:
+        if state[(k,y)] == THIS_COLOR:
             for j in range(k-1, x, -1):
-                next_state[(j,y)] = SAME_COLOR
+                next_state[(j,y)] = THIS_COLOR
                 flip_num +=1
             break
         elif state[(k,y)] == BLANK:
@@ -55,9 +55,9 @@ def testidx(idx, state, is_black):
 
     # y to negative 
     for k in range(y-1, -1, -1): 
-        if state[(x,k)] == SAME_COLOR:
+        if state[(x,k)] == THIS_COLOR:
             for j in range(k+1,y):
-                next_state[(x,j)] = SAME_COLOR
+                next_state[(x,j)] = THIS_COLOR
                 flip_num +=1
             break
         elif state[(x,k)] == BLANK:
@@ -65,9 +65,9 @@ def testidx(idx, state, is_black):
 
     # y to positive
     for k in range(y+1, 8): 
-        if state[(x,k)] == SAME_COLOR:
+        if state[(x,k)] == THIS_COLOR:
             for j in range(k-1, y, -1):
-                next_state[(x,j)] = SAME_COLOR
+                next_state[(x,j)] = THIS_COLOR
                 flip_num +=1
             break
         elif state[(x,k)] == BLANK:
@@ -75,9 +75,9 @@ def testidx(idx, state, is_black):
 
     # x=y line to negative
     for k in zip(range(x-1,-1,-1),range(y-1,-1,-1)):
-        if state[k] == SAME_COLOR:
+        if state[k] == THIS_COLOR:
             for j in zip(range(k[0]+1, x), range(k[1]+1, y)):
-                next_state[j] = SAME_COLOR
+                next_state[j] = THIS_COLOR
                 flip_num +=1
             break
         elif state[k] == BLANK:
@@ -85,9 +85,9 @@ def testidx(idx, state, is_black):
     
     # x=y line to positive
     for k in zip(range(x+1,8),range(y+1,8)):
-        if state[k] == SAME_COLOR:
+        if state[k] == THIS_COLOR:
             for j in zip(range(k[0]-1, x, -1), range(k[1]-1, y, -1)):
-                next_state[j] = SAME_COLOR
+                next_state[j] = THIS_COLOR
                 flip_num +=1
             break
         elif state[k] == BLANK:
@@ -95,9 +95,9 @@ def testidx(idx, state, is_black):
     
     # x+y=p line to negative
     for k in zip(range(x-1,-1,-1),range(y+1,8)):
-        if state[k] == SAME_COLOR:
+        if state[k] == THIS_COLOR:
             for j in zip(range(k[0]+1, x), range(k[1]-1, y, -1)):
-                next_state[j] = SAME_COLOR
+                next_state[j] = THIS_COLOR
                 flip_num +=1
             break
         elif state[k] == BLANK:
@@ -105,21 +105,21 @@ def testidx(idx, state, is_black):
     
     # x+y=p line to positive
     for k in zip(range(x+1,8),range(y-1,-1,-1)):
-        if state[k] == SAME_COLOR:
+        if state[k] == THIS_COLOR:
             for j in zip(range(k[0]-1, x, -1), range(k[1]+1, y)):
-                next_state[j] = SAME_COLOR
+                next_state[j] = THIS_COLOR
                 flip_num +=1
             break
         elif state[k] == BLANK:
             break
     
     if flip_num != 0:
-        next_state[idx] = SAME_COLOR
+        next_state[idx] = THIS_COLOR
         return flip_num, True, next_state
     
     # check if it is in 6*6
     if 1<=x<=6 and 1<=y<=6:
-        next_state[idx] = SAME_COLOR
+        next_state[idx] = THIS_COLOR
         return flip_num, True, next_state
     else:
         return flip_num, False, next_state
@@ -130,9 +130,11 @@ def minmax(state, depth, maxplayer, is_black, alpha, beta):
     next_states = []
     next_placement = []
 
+    THIS_COLOR = 1 if is_black else 2
+
     walkables = getwalkables(state)
     for w in walkables:
-        flip_num, is_legal, s = testidx(w, state, is_black)
+        flip_num, is_legal, s = testidx(w, state, THIS_COLOR)
         if is_legal:
             next_states.append(s)
             next_placement.append(w)
@@ -149,7 +151,7 @@ def minmax(state, depth, maxplayer, is_black, alpha, beta):
         v = -np.inf
         for s in next_states:
             i +=1
-            v = max(v, minmax(s, depth-1, False, is_black, alpha, beta))
+            v = max(v, minmax(s, depth-1, False, not is_black, alpha, beta))
             if v>=beta:
                 if depth == DEPTH:
                     return next_placement[i]
@@ -165,7 +167,7 @@ def minmax(state, depth, maxplayer, is_black, alpha, beta):
         v = np.inf
         for s in next_states:
             i+=1
-            v = min(v, minmax(s, depth-1, True, is_black, alpha, beta))
+            v = min(v, minmax(s, depth-1, True, not is_black, alpha, beta))
             if v<=alpha:
                 if depth == DEPTH:
                     return next_placement[i]
@@ -180,9 +182,9 @@ def minmax(state, depth, maxplayer, is_black, alpha, beta):
 
 
 DEPTH = 4
-SAME_COLOR = 1 # will be changed ever case
-OPPOSE_COLOR = 2 # will be changed ever case
 BLANK = 0
+MY_COLOR = 1 # just an init
+ENEMY_COLOR = 2 # just an init
 
 def GetStep(board, is_black):
 
@@ -190,15 +192,17 @@ def GetStep(board, is_black):
     board = np.array(board, dtype='int32')
 
     # do the minmax process
-    SAME_COLOR = 1 if is_black else 2
-    OPPOSE_COLOR = 2 if is_black else 1
     depth = DEPTH
     alpha = -np.inf
     beta = np.inf
+    MY_COLOR = 1 if is_black else 2
+    ENEMY_COLOR = 2 if is_black else 1
+
     return minmax(board, depth, True, is_black, alpha, beta)
 
 
 while(True):
+    print("A1!")
     (stop_program, id_package, board, is_black) = STcpClient.GetBoard()
     if(stop_program):
         break
