@@ -24,15 +24,7 @@ def getwalkables(state):
     indices = np.argwhere(state==0)
     return [tuple(row) for row in indices]
 
-def testidx(idx, state, THIS_COLOR):
-    #彥淳負責
-    x = idx[0]
-    y = idx[1]
-    next_state = np.copy(state)
-    flip_num = 0
-
-    # check if it flips 
-
+def fliping(x,y, state, next_state, flip_num, THIS_COLOR):
     # x to negative 
     for k in range(x-1, -1, -1): 
         if state[(k,y)] == THIS_COLOR:
@@ -112,6 +104,28 @@ def testidx(idx, state, THIS_COLOR):
             break
         elif state[k] == BLANK:
             break
+
+def can_flip(idx, state, OPPOSE_COLOR):
+    oppose_idxs = np.argwhere(state==0)
+    for oppose_id in [tuple(row) for row in oppose_idxs]:
+        slope = (oppose_id[1]-idx[1])/(oppose_id[0]-idx[0])
+        if slope in [0, 1, -1, np.inf, -np.inf]:
+            return True
+    return False
+
+def testidx(idx, state, THIS_COLOR):
+    #彥淳負責
+    x = idx[0]
+    y = idx[1]
+    next_state = np.copy(state)
+    flip_num = 0
+
+    # check if can flip
+    OPPOSE_COLOR = 2 if THIS_COLOR==1 else 1
+
+    # check if it flips if yes, then flip
+    if can_flip(idx, state, OPPOSE_COLOR):
+        fliping(x,y, state, next_state, flip_num, THIS_COLOR)
     
     if flip_num != 0:
         next_state[idx] = THIS_COLOR
@@ -197,7 +211,8 @@ def GetStep(board, is_black):
     beta = np.inf
     MY_COLOR = 1 if is_black else 2
     ENEMY_COLOR = 2 if is_black else 1
-
+    #print("A2")
+    #return (0,0)
     return minmax(board, depth, True, is_black, alpha, beta)
 
 
@@ -209,3 +224,9 @@ while(True):
     
     Step = GetStep(board, is_black)
     STcpClient.SendStep(id_package, Step)
+
+
+"""
+1. Not sure alpha, beta propagation!
+2. Terminal/pass situation(solved)
+"""
